@@ -8,7 +8,6 @@ import ru.practicum.ewm.dao.StatsRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,15 +21,6 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        if (uris == null || uris.isEmpty()) {
-            return repo.findStats(start,
-                    end,
-                    unique);
-        } else {
-            return repo.findStats(start,
-                    end,
-                    uris.stream().map(u -> String.format("'%s'", u)).collect(Collectors.toList()),
-                    unique);
-        }
+        return repo.findStats(start, end, uris, unique);
     }
 }

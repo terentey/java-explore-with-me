@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -27,40 +28,37 @@ public class StatsRepoImpl implements StatsRepository {
     }
 
     @Override
-    public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, boolean unique) {
-        String sql;
-        if (unique) {
-            sql = "SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
-                    "FROM endpoint_hit AS eh " +
-                    "WHERE eh.timestamp BETWEEN ? AND ? " +
-                    "GROUP BY eh.app, eh.uri " +
-                    "ORDER BY hit DESC";
-        } else {
-            sql = "SELECT eh.app, eh.uri, COUNT(eh.ip) AS hit " +
-                    "FROM endpoint_hit AS eh " +
-                    "WHERE eh.timestamp BETWEEN ? AND ? " +
-                    "GROUP BY eh.app, eh.uri " +
-                    "ORDER BY hit DESC";
-        }
-        return jdbc.query(sql, ((rs, rowNum) -> viewStatsDtoMapper(rs)), start, end);
-    }
-
-    @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         String sql;
-        String uri = String.join(", ", uris);
-        if (unique) {
-            sql = String.format("SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
-                    "FROM endpoint_hit AS eh " +
-                    "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s) " +
-                    "GROUP BY eh.app, eh.uri " +
-                    "ORDER BY hit DESC", uri);
+        if (uris.isEmpty()) {
+            if (unique) {
+                sql = "SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
+                        "FROM endpoint_hit AS eh " +
+                        "WHERE eh.timestamp BETWEEN ? AND ? " +
+                        "GROUP BY eh.app, eh.uri " +
+                        "ORDER BY hit DESC";
+            } else {
+                sql = "SELECT eh.app, eh.uri, COUNT(eh.ip) AS hit " +
+                        "FROM endpoint_hit AS eh " +
+                        "WHERE eh.timestamp BETWEEN ? AND ? " +
+                        "GROUP BY eh.app, eh.uri " +
+                        "ORDER BY hit DESC";
+            }
         } else {
-            sql = String.format("SELECT eh.app, eh.uri, COUNT(eh.ip) AS hit " +
-                    "FROM endpoint_hit AS eh " +
-                    "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s) " +
-                    "GROUP BY eh.app, eh.uri " +
-                    "ORDER BY hit DESC", uri);
+            String uri = uris.stream().map(u -> String.format("'%s'", u)).collect(Collectors.joining(", "));
+            if (unique) {
+                sql = String.format("SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
+                        "FROM endpoint_hit AS eh " +
+                        "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s) " +
+                        "GROUP BY eh.app, eh.uri " +
+                        "ORDER BY hit DESC", uri);
+            } else {
+                sql = String.format("SELECT eh.app, eh.uri, COUNT(eh.ip) AS hit " +
+                        "FROM endpoint_hit AS eh " +
+                        "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s) " +
+                        "GROUP BY eh.app, eh.uri " +
+                        "ORDER BY hit DESC", uri);
+            }
         }
         return jdbc.query(sql, ((rs, rowNum) -> viewStatsDtoMapper(rs)), start, end);
     }
