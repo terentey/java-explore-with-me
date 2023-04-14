@@ -30,7 +30,7 @@ public class StatsRepoImpl implements StatsRepository {
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         String sql;
-        if (uris.isEmpty()) {
+        if (uris == null || uris.isEmpty()) {
             if (unique) {
                 sql = "SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
                         "FROM endpoint_hit AS eh " +
