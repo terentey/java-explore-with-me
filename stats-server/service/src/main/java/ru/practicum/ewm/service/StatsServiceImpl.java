@@ -6,6 +6,7 @@ import ru.practicum.ewm.EndpointHitDto;
 import ru.practicum.ewm.ViewStatsDto;
 import ru.practicum.ewm.dao.StatsRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +21,7 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public List<ViewStatsDto> findStats(String start, String end, List<String> uris, boolean unique) {
+    public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         if (uris == null || uris.isEmpty()) {
             return repo.findStats(start,
                     end,

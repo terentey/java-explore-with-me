@@ -9,14 +9,11 @@ import ru.practicum.ewm.ViewStatsDto;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class StatsRepoImpl implements StatsRepository {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
     private final JdbcTemplate jdbc;
 
     @Override
@@ -30,50 +27,42 @@ public class StatsRepoImpl implements StatsRepository {
     }
 
     @Override
-    public List<ViewStatsDto> findStats(String start, String end, boolean unique) {
+    public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, boolean unique) {
         String sql;
         if (unique) {
-            sql = "SELECT res.app, res.uri, COUNT(res.ip) AS hit " +
-                    "FROM (SELECT DISTINCT eh.app, eh.uri, eh.ip " +
+            sql = "SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
                     "FROM endpoint_hit AS eh " +
-                    "WHERE eh.timestamp BETWEEN ? AND ?) AS res " +
-                    "GROUP BY res.app, res.uri " +
+                    "WHERE eh.timestamp BETWEEN ? AND ? " +
+                    "GROUP BY eh.app, eh.uri " +
                     "ORDER BY hit DESC";
         } else {
-            sql = "SELECT eh.app, eh.uri, COUNT(eh.id) AS hit " +
+            sql = "SELECT eh.app, eh.uri, COUNT(eh.ip) AS hit " +
                     "FROM endpoint_hit AS eh " +
                     "WHERE eh.timestamp BETWEEN ? AND ? " +
                     "GROUP BY eh.app, eh.uri " +
                     "ORDER BY hit DESC";
         }
-        return jdbc.query(sql,
-                ((rs, rowNum) -> viewStatsDtoMapper(rs)),
-                LocalDateTime.parse(start, FORMATTER),
-                LocalDateTime.parse(end, FORMATTER));
+        return jdbc.query(sql, ((rs, rowNum) -> viewStatsDtoMapper(rs)), start, end);
     }
 
     @Override
-    public List<ViewStatsDto> findStats(String start, String end, List<String> uris, boolean unique) {
+    public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         String sql;
         String uri = String.join(", ", uris);
         if (unique) {
-            sql = String.format("SELECT res.app, res.uri, COUNT(res.ip) AS hit " +
-                    "FROM (SELECT DISTINCT eh.app, eh.uri, eh.ip " +
+            sql = String.format("SELECT eh.app, eh.uri, COUNT(DISTINCT eh.ip) AS hit " +
                     "FROM endpoint_hit AS eh " +
-                    "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s)) AS res " +
-                    "GROUP BY res.app, res.uri " +
+                    "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s) " +
+                    "GROUP BY eh.app, eh.uri " +
                     "ORDER BY hit DESC", uri);
         } else {
-            sql = String.format("SELECT eh.app, eh.uri, COUNT(eh.id) AS hit " +
+            sql = String.format("SELECT eh.app, eh.uri, COUNT(eh.ip) AS hit " +
                     "FROM endpoint_hit AS eh " +
                     "WHERE eh.timestamp BETWEEN ? AND ? AND eh.uri IN(%s) " +
                     "GROUP BY eh.app, eh.uri " +
                     "ORDER BY hit DESC", uri);
         }
-        return jdbc.query(sql,
-                ((rs, rowNum) -> viewStatsDtoMapper(rs)),
-                LocalDateTime.parse(start, FORMATTER),
-                LocalDateTime.parse(end, FORMATTER));
+        return jdbc.query(sql, ((rs, rowNum) -> viewStatsDtoMapper(rs)), start, end);
     }
 
     private ViewStatsDto viewStatsDtoMapper(ResultSet rs) throws SQLException {
