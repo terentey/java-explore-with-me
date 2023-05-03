@@ -1,0 +1,30 @@
+package ru.practicum.ewm.user.mapper;
+
+import ru.practicum.ewm.user.dto.UserDtoRequest;
+import ru.practicum.ewm.user.dto.UserDtoResponse;
+import ru.practicum.ewm.user.model.User;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class UserMapper {
+    public static List<UserDtoResponse> mapToUserDto(List<User> users) {
+        return users.stream().map(UserMapper::mapToUserDto).collect(Collectors.toList());
+    }
+
+    public static UserDtoResponse mapToUserDto(User user) {
+        return UserDtoResponse
+                .builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .build();
+    }
+
+    public static User mapToUser(UserDtoRequest userDto) {
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setName(userDto.getName());
+        return user;
+    }
+}
