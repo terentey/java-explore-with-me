@@ -14,6 +14,7 @@ public class IncorrectIdException extends RuntimeException {
     public IncorrectIdException(long id, String name) {
         message = String.format("Unknown %s_id: %d", name, id);
     }
+
     @Override
     public String getMessage() {
         return message;
