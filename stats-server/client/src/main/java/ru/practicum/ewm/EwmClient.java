@@ -18,7 +18,7 @@ import java.util.Map;
 public class EwmClient extends BaseClient {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public EwmClient(@Value("http://stats-server:9090") String serverUrl,
+    public EwmClient(@Value("${stats-server.url}") String serverUrl,
                      RestTemplateBuilder builder) {
         super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                 .requestFactory(HttpComponentsClientHttpRequestFactory::new)

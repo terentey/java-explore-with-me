@@ -48,6 +48,6 @@ public class Event {
     boolean requestModeration;
     @Enumerated(EnumType.STRING)
     State state;
-    @Column
+    @Column(length = 120)
     String title;
 }

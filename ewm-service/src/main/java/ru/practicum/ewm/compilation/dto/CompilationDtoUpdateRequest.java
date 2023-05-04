@@ -5,15 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Data
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CompilationDtoRequest {
+public class CompilationDtoUpdateRequest {
     List<Long> events;
     Boolean pinned;
-    @NotBlank
+    @Size(min = 3, max = 120)
     String title;
 }

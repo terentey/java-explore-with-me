@@ -1,5 +1,6 @@
 package ru.practicum.ewm.request.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.model.ParticipationRequest;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class ParticipationRequestMapper {
     public static ParticipationRequest mapToParticipationRequest(Event event, User requester, Status status, LocalDateTime created) {
         ParticipationRequest participationRequest = new ParticipationRequest();

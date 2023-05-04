@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,7 @@ import ru.practicum.ewm.category.dao.CategoryRepository;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.event.dao.EventRepository;
 import ru.practicum.ewm.event.dao.LocationRepository;
-import ru.practicum.ewm.event.dto.EventDtoRequest;
-import ru.practicum.ewm.event.dto.EventDtoResponse;
-import ru.practicum.ewm.event.dto.EventSort;
-import ru.practicum.ewm.event.dto.LocationDto;
+import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.event.model.State;
@@ -32,6 +30,7 @@ import ru.practicum.ewm.util.exception.DbConflictException;
 import ru.practicum.ewm.util.exception.IncorrectIdException;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +49,8 @@ import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.mapToPa
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private static final Sort BY_EVENT_DATE_DESC = Sort.by(Sort.Direction.DESC, "eventDate");
-    private static final String APP = "ewm-main-service";
+    @Value("${ewm-app.name}")
+    private static final String APP = "";
     private static final String PENDING_REQUESTS = "pendingRequests";
     private static final String CONFIRMED_REQUESTS = "confirmedRequests";
     private static final String REJECTED_REQUESTS = "rejectedRequests";
@@ -66,12 +66,12 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventDtoResponse save(EventDtoRequest eventDtoRequest, long userId) {
+    public EventDtoResponse save(EventDtoCreationRequest eventDtoCreationRequest, long userId) {
         return mapToEventDtoResponse(repo.saveAndFlush(mapToEvent(
-                eventDtoRequest,
-                findCategory(eventDtoRequest.getCategory()),
+                eventDtoCreationRequest,
+                findCategory(eventDtoCreationRequest.getCategory()),
                 findInitiator(userId),
-                getLocation(eventDtoRequest.getLocation()))));
+                getLocation(eventDtoCreationRequest.getLocation()))));
     }
 
     @Transactional(readOnly = true)
@@ -164,10 +164,10 @@ public class EventServiceImpl implements EventService {
                 .findAllByEventAndStatus(event, Status.CONFIRMED);
         final EventDtoResponse eventDtoResponse = mapToEventDtoResponse(event, requests.size());
         try {
-            List<ViewStatsDto> views = objectMapper.readValue(ewmClient.stats(LocalDateTime.now().minusYears(100),
-                    LocalDateTime.now().plusYears(100),
+            List<ViewStatsDto> views = objectMapper.readValue(ewmClient.stats(event.getPublishedOn(),
+                    LocalDateTime.now(),
                     List.of(String.format("/events/%d", eventId)),
-                    false).getBody(), new TypeReference<>() {
+                    true).getBody(), new TypeReference<>() {
             });
             if (views == null || views.isEmpty()) {
                 eventDtoResponse.setViews(0);
@@ -198,7 +198,7 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventDtoResponse update(EventDtoRequest eventDtoRequest,
+    public EventDtoResponse update(EventDtoUpdateRequest eventDtoRequest,
                                    long userId,
                                    long eventId) {
         final Event event = findEventByInitiatorIdAndEventId(userId, eventId);
@@ -210,7 +210,7 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventDtoResponse update(EventDtoRequest eventDtoRequest, long eventId) {
+    public EventDtoResponse update(EventDtoUpdateRequest eventDtoRequest, long eventId) {
         final Event event = repo.findById(eventId).orElseThrow(() -> new IncorrectIdException(eventId, "event"));
         if (!event.getState().equals(State.PENDING)) {
             throw new DbConflictException();
@@ -276,7 +276,7 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private Event update(Event event, EventDtoRequest eventDtoRequest) {
+    private Event update(Event event, EventDtoUpdateRequest eventDtoRequest) {
         if (eventDtoRequest.getAnnotation() != null && !eventDtoRequest.getAnnotation().isBlank()) {
             event.setAnnotation(eventDtoRequest.getAnnotation());
         }
@@ -305,6 +305,7 @@ public class EventServiceImpl implements EventService {
             switch (eventDtoRequest.getStateAction()) {
                 case PUBLISH_EVENT:
                     event.setState(State.PUBLISHED);
+                    event.setPublishedOn(LocalDateTime.now());
                     break;
                 case REJECT_EVENT:
                     event.setState(State.REJECTED);
@@ -349,9 +350,16 @@ public class EventServiceImpl implements EventService {
                                                                    List<Event> events) {
         final List<String> uris = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(toList());
         final List<EventDtoResponse> eventDtoResponses = setParticipationRequest(events);
+        if (rangeStart == null) {
+            events.sort(Comparator.comparing(Event::getPublishedOn));
+            rangeStart = events.get(0).getPublishedOn();
+        }
+        if (rangeEnd == null) {
+            rangeEnd = LocalDateTime.now();
+        }
         try {
             List<ViewStatsDto> views = objectMapper.readValue(
-                    ewmClient.stats(rangeStart, rangeEnd, uris, false).getBody(), new TypeReference<>() {
+                    ewmClient.stats(rangeStart, rangeEnd, uris, true).getBody(), new TypeReference<>() {
                     });
             Map<Long, Integer> viewsById = views
                     .stream()

@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public CategoryDtoResponse save(@Validated @NotBlank String name) {
+    public CategoryDtoResponse save(@NotBlank String name) {
         Category category = new Category();
         category.setName(name);
         return mapToCategoryDtoResponse(repo.saveAndFlush(category));
@@ -43,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public CategoryDtoResponse update(@Validated @NotBlank String name, long catId) {
+    public CategoryDtoResponse update(@NotBlank String name, long catId) {
         final Category category = repo.findById(catId).orElseThrow(() -> new IncorrectIdException(catId, "category"));
         category.setName(name);
         return mapToCategoryDtoResponse(category);

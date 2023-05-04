@@ -20,6 +20,6 @@ public class Compilation {
     long id;
     @Column
     boolean pinned;
-    @Column
+    @Column(length = 120)
     String title;
 }

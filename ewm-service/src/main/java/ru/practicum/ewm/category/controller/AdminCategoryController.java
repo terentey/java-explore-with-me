@@ -19,13 +19,13 @@ public class AdminCategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryDtoResponse save(@RequestBody Map<String, String> body) {
-        return service.save(body.getOrDefault("name", null));
+        return service.save(body.get("name"));
     }
 
     @PatchMapping("/{catId}")
     public CategoryDtoResponse update(@RequestBody Map<String, String> body,
                                       @PathVariable long catId) {
-        return service.update(body.getOrDefault("name", null), catId);
+        return service.update(body.get("name"), catId);
     }
 
     @DeleteMapping("/{catId}")

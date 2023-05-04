@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
-@Validated
 public class AdminUserController {
     private final UserService service;
 
@@ -24,7 +23,7 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public List<UserDtoResponse> findAllByIds(@RequestParam List<Long> ids,
+    public List<UserDtoResponse> findAllByIds(@RequestParam(required = false) List<Long> ids,
                                               @RequestParam(defaultValue = "0") int from,
                                               @RequestParam(defaultValue = "10") int size) {
         return service.findAllByIds(ids, from, size);

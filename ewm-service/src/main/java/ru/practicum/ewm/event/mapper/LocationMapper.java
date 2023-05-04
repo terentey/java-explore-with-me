@@ -1,8 +1,10 @@
 package ru.practicum.ewm.event.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.event.dto.LocationDto;
 import ru.practicum.ewm.event.model.Location;
 
+@UtilityClass
 public class LocationMapper {
     public static LocationDto mapToLocationDto(Location location) {
         return LocationDto

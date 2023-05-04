@@ -14,6 +14,8 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
 
     List<ParticipationRequest> findAllByEvent(Event event);
 
+    long countByEvent(Event event);
+
     @Query("select pe " +
             "from ParticipationRequest as pe " +
             "where pe.event = :event AND pe.status = :status")

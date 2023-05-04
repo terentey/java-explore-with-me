@@ -6,8 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.compilation.dao.CompilationEventRepository;
 import ru.practicum.ewm.compilation.dao.CompilationRepository;
-import ru.practicum.ewm.compilation.dto.CompilationDtoRequest;
+import ru.practicum.ewm.compilation.dto.CompilationDtoCreationRequest;
 import ru.practicum.ewm.compilation.dto.CompilationDtoResponse;
+import ru.practicum.ewm.compilation.dto.CompilationDtoUpdateRequest;
 import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.compilation.model.CompilationEvent;
 import ru.practicum.ewm.event.dao.EventRepository;
@@ -19,7 +20,6 @@ import ru.practicum.ewm.util.exception.IncorrectIdException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -39,9 +39,12 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Transactional
     @Override
-    public CompilationDtoResponse save(CompilationDtoRequest compilationDtoRequest) {
-        final Compilation compilation = compilationRepo.saveAndFlush(mapToCompilation(compilationDtoRequest));
+    public CompilationDtoResponse save(CompilationDtoCreationRequest compilationDtoRequest) {
         final List<Event> events = eventRepo.findAllById(compilationDtoRequest.getEvents());
+        if (events == null) {
+            throw new IncorrectIdException();
+        }
+        final Compilation compilation = compilationRepo.saveAndFlush(mapToCompilation(compilationDtoRequest));
         compilationEventRepo.saveAllAndFlush(mapToCompilationEvent(compilation, events));
         return mapToCompilationDtoResponse(compilation, setParticipationRequest(events));
     }
@@ -50,8 +53,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public List<CompilationDtoResponse> findAll(Boolean pinned, int from, int size) {
         final List<Compilation> compilations;
-        Optional<Boolean> optional = Optional.ofNullable(pinned);
-        if (optional.isEmpty()) {
+        if (pinned == null) {
             compilations = compilationRepo.findAll(PageRequest.of(from / size, size)).getContent();
         } else {
             compilations = compilationRepo.findAllByPinned(pinned, PageRequest.of(from / size, size));
@@ -78,11 +80,14 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Transactional
     @Override
-    public CompilationDtoResponse update(long compId, CompilationDtoRequest compilationDtoRequest) {
+    public CompilationDtoResponse update(long compId, CompilationDtoUpdateRequest compilationDtoRequest) {
         final Compilation compilation = compilationRepo
                 .findById(compId)
                 .orElseThrow(() -> new IncorrectIdException(compId, "compilation"));
         final List<Event> oldEvents = compilationEventRepo.findEventByCompilation(compilation);
+        if (oldEvents == null) {
+            throw new IncorrectIdException();
+        }
         final List<Long> updatedEventIds = compilationDtoRequest.getEvents();
         final List<Event> updatedEvents = eventRepo.findAllById(updatedEventIds);
         final List<Long> oldEventIds = oldEvents.stream().map(Event::getId).collect(toList());
@@ -97,7 +102,7 @@ public class CompilationServiceImpl implements CompilationService {
         if (compilationDtoRequest.getPinned() != null) {
             compilation.setPinned(compilationDtoRequest.getPinned());
         }
-        if (compilationDtoRequest.getTitle() != null) {
+        if (compilationDtoRequest.getTitle() != null && !compilationDtoRequest.getTitle().isBlank()) {
             compilation.setTitle(compilationDtoRequest.getTitle());
         }
         return mapToCompilationDtoResponse(compilation, setParticipationRequest(updatedEvents));

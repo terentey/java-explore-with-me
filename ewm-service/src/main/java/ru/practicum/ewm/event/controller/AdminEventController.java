@@ -3,8 +3,8 @@ package ru.practicum.ewm.event.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.event.dto.EventDtoRequest;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
+import ru.practicum.ewm.event.dto.EventDtoUpdateRequest;
 import ru.practicum.ewm.event.service.EventService;
 
 import java.time.LocalDateTime;
@@ -20,17 +20,17 @@ public class AdminEventController {
     public List<EventDtoResponse> findAll(@RequestParam(required = false) List<Long> users,
                                           @RequestParam(required = false) List<String> states,
                                           @RequestParam(required = false) List<Long> categories,
-                                          @RequestParam(defaultValue = "2000-01-01 00:00:00")
-                                          @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-                                          @RequestParam(defaultValue = "2100-01-01 00:00:00")
-                                          @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+                                          @RequestParam(required = false)
+                                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+                                          @RequestParam(required = false)
+                                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                           @RequestParam(defaultValue = "0") int from,
                                           @RequestParam(defaultValue = "10") int size) {
         return service.findAll(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
     @PatchMapping("/{eventId}")
-    public EventDtoResponse update(@RequestBody EventDtoRequest eventDtoRequest,
+    public EventDtoResponse update(@RequestBody EventDtoUpdateRequest eventDtoRequest,
                                    @PathVariable long eventId) {
         return service.update(eventDtoRequest, eventId);
     }

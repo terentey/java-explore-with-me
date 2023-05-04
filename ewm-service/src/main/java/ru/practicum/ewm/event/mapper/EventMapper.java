@@ -1,7 +1,8 @@
 package ru.practicum.ewm.event.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.category.model.Category;
-import ru.practicum.ewm.event.dto.EventDtoRequest;
+import ru.practicum.ewm.event.dto.EventDtoCreationRequest;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.Location;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.event.mapper.LocationMapper.mapToLocationDto;
 
+@UtilityClass
 public class EventMapper {
     public static List<EventDtoResponse> mapToEventDtoResponse(List<Event> events,
                                                                Map<Event, List<ParticipationRequest>> requests) {
@@ -56,23 +58,23 @@ public class EventMapper {
         return eventDtoResponse;
     }
 
-    public static Event mapToEvent(EventDtoRequest eventDtoRequest,
+    public static Event mapToEvent(EventDtoCreationRequest eventDtoCreationRequest,
                                    Category category,
                                    User initiator,
                                    Location location) {
         Event event = new Event();
-        event.setAnnotation(eventDtoRequest.getAnnotation());
+        event.setAnnotation(eventDtoCreationRequest.getAnnotation());
         event.setCategory(category);
         event.setCreatedOn(LocalDateTime.now());
-        event.setDescription(eventDtoRequest.getDescription());
-        event.setEventDate(eventDtoRequest.getEventDate());
+        event.setDescription(eventDtoCreationRequest.getDescription());
+        event.setEventDate(eventDtoCreationRequest.getEventDate());
         event.setInitiator(initiator);
         event.setLocation(location);
-        event.setPaid(eventDtoRequest.getPaid());
-        event.setParticipantLimit(eventDtoRequest.getParticipantLimit());
-        event.setRequestModeration(eventDtoRequest.getRequestModeration());
+        event.setPaid(eventDtoCreationRequest.isPaid());
+        event.setParticipantLimit(eventDtoCreationRequest.getParticipantLimit());
+        event.setRequestModeration(eventDtoCreationRequest.isRequestModeration());
         event.setState(State.PENDING);
-        event.setTitle(eventDtoRequest.getTitle());
+        event.setTitle(eventDtoCreationRequest.getTitle());
         return event;
     }
 }

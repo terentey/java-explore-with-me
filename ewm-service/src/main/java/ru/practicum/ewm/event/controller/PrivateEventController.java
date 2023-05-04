@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.event.dto.EventDtoRequest;
+import ru.practicum.ewm.event.dto.EventDtoCreationRequest;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
+import ru.practicum.ewm.event.dto.EventDtoUpdateRequest;
 import ru.practicum.ewm.event.service.EventService;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
@@ -22,7 +23,7 @@ public class PrivateEventController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EventDtoResponse save(@RequestBody @Validated EventDtoRequest eventDto,
+    public EventDtoResponse save(@RequestBody @Validated EventDtoCreationRequest eventDto,
                                  @PathVariable long userId) {
         return service.save(eventDto, userId);
     }
@@ -45,7 +46,7 @@ public class PrivateEventController {
     }
 
     @PatchMapping("/{eventId}")
-    public EventDtoResponse update(@RequestBody EventDtoRequest eventDto,
+    public EventDtoResponse update(@RequestBody EventDtoUpdateRequest eventDto,
                                    @PathVariable long userId,
                                    @PathVariable long eventId) {
         return service.update(eventDto, userId, eventId);

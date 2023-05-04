@@ -1,7 +1,8 @@
 package ru.practicum.ewm.event.service;
 
-import ru.practicum.ewm.event.dto.EventDtoRequest;
+import ru.practicum.ewm.event.dto.EventDtoCreationRequest;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
+import ru.practicum.ewm.event.dto.EventDtoUpdateRequest;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface EventService {
-    EventDtoResponse save(EventDtoRequest eventDtoRequest, long userId);
+    EventDtoResponse save(EventDtoCreationRequest eventDtoCreationRequest, long userId);
 
     List<EventDtoResponse> findAll(String text,
                                    List<Long> categories,
@@ -39,9 +40,9 @@ public interface EventService {
 
     List<ParticipationRequestDto> findRequestByUserIdAndById(long userId, long eventId);
 
-    EventDtoResponse update(EventDtoRequest eventDtoRequest, long userId, long eventId);
+    EventDtoResponse update(EventDtoUpdateRequest eventDtoRequest, long userId, long eventId);
 
-    EventDtoResponse update(EventDtoRequest eventDtoRequest, long eventId);
+    EventDtoResponse update(EventDtoUpdateRequest eventDtoRequest, long eventId);
 
     Map<String, List<ParticipationRequestDto>> updateRequests(EventRequestStatusUpdateRequest dto, long userId, long eventId);
 }

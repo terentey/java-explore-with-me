@@ -35,13 +35,13 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         final LocalDateTime created = LocalDateTime.now();
         final User requester = findRequester(userId);
         final Event event = eventRepo.findById(eventId).orElseThrow(() -> new IncorrectIdException(eventId, "event"));
-        final List<ParticipationRequest> requests = repo.findAllByEvent(event);
+        final long requests = repo.countByEvent(event);
         if (event.getInitiator().getId() == userId ||
                 event.getState().equals(State.REJECTED) ||
                 event.getState().equals(State.PENDING) ||
-                requests.size() >= event.getParticipantLimit()) {
+                requests >= event.getParticipantLimit()) {
             throw new DbConflictException();
-        } else if (event.isRequestModeration()) {
+        } else if (event.isRequestModeration() && event.getParticipantLimit() != 0) {
             return mapToParticipantRequestDto(
                     repo.saveAndFlush(mapToParticipationRequest(event, requester, Status.PENDING, created)));
         } else {
@@ -62,6 +62,9 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         findRequester(userId);
         final ParticipationRequest participationRequest = repo.findById(requestId)
                 .orElseThrow(() -> new IncorrectIdException(requestId, "request"));
+        if (participationRequest.getRequester().getId() != userId) {
+            throw new IncorrectIdException(userId, "user");
+        }
         participationRequest.setStatus(Status.CANCELED);
         return mapToParticipantRequestDto(participationRequest);
     }

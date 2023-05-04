@@ -1,12 +1,14 @@
 package ru.practicum.ewm.compilation.mapper;
 
-import ru.practicum.ewm.compilation.dto.CompilationDtoRequest;
+import lombok.experimental.UtilityClass;
+import ru.practicum.ewm.compilation.dto.CompilationDtoCreationRequest;
 import ru.practicum.ewm.compilation.dto.CompilationDtoResponse;
 import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
 
 import java.util.List;
 
+@UtilityClass
 public class CompilationMapper {
     public static CompilationDtoResponse mapToCompilationDtoResponse(Compilation compilation,
                                                                      List<EventDtoResponse> events) {
@@ -19,9 +21,9 @@ public class CompilationMapper {
                 .build();
     }
 
-    public static Compilation mapToCompilation(CompilationDtoRequest compilationDtoRequest) {
+    public static Compilation mapToCompilation(CompilationDtoCreationRequest compilationDtoRequest) {
         Compilation compilation = new Compilation();
-        compilation.setPinned(compilationDtoRequest.getPinned());
+        compilation.setPinned(compilationDtoRequest.isPinned());
         compilation.setTitle(compilationDtoRequest.getTitle());
         return compilation;
     }
