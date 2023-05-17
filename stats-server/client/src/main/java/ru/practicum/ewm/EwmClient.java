@@ -42,7 +42,7 @@ public class EwmClient extends BaseClient {
         Map<String, Object> parameters = Map.of(
                 "start", start.format(FORMATTER),
                 "end", end.format(FORMATTER),
-                "uris", String.join("&uris=", uris),
+                "uris", String.join(",", uris),
                 "unique", String.valueOf(unique));
 
         return prepareGatewayResponse(rest.exchange("/stats?start={start}&end={end}&uris={uris}&unique={unique}",

@@ -16,13 +16,15 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("select e " +
             "from  Event e " +
-            "where (coalesce(:text, null) is null or lower(e.annotation) like %:text%) " +
-            "or (coalesce(:text, null) is null or lower(e.description) like %:text%) " +
+            "where (coalesce(:state, null) is null or e.state = :state) " +
+            "and ((coalesce(:text, null) is null or lower(e.annotation) like %:text%) " +
+            "or (coalesce(:text, null) is null or lower(e.description) like %:text%)) " +
             "and (coalesce(:categories, null) is null or e.category.id in :categories) " +
             "and (coalesce(:paid, null) is null or e.paid in :paid) " +
             "and (coalesce(:rangeStart, null) is null or e.eventDate >= :rangeStart) " +
             "and (coalesce(:rangeEnd, null) is null or e.eventDate <= :rangeEnd)")
-    List<Event> findAll(String text,
+    List<Event> findAll(State state,
+                        String text,
                         List<Long> categories,
                         Boolean paid,
                         LocalDateTime rangeStart,

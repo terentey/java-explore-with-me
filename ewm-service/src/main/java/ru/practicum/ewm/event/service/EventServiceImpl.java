@@ -49,8 +49,6 @@ import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.mapToPa
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private static final Sort BY_EVENT_DATE_DESC = Sort.by(Sort.Direction.DESC, "eventDate");
-    @Value("${ewm-app.name}")
-    private static final String APP = "";
     private static final String PENDING_REQUESTS = "pendingRequests";
     private static final String CONFIRMED_REQUESTS = "confirmedRequests";
     private static final String REJECTED_REQUESTS = "rejectedRequests";
@@ -63,6 +61,8 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepo;
     private final LocationRepository locationRepo;
     private final ParticipationRequestRepository participationRequestRepo;
+    @Value("${ewm-app.name}")
+    private String app;
 
     @Transactional
     @Override
@@ -93,6 +93,7 @@ public class EventServiceImpl implements EventService {
         }
         if (sortFromString.equals(EVENT_DATE)) {
             events = repo.findAll(
+                    State.PUBLISHED,
                     text,
                     categories,
                     paid,
@@ -101,6 +102,7 @@ public class EventServiceImpl implements EventService {
                     PageRequest.of(from / size, size, BY_EVENT_DATE_DESC));
         } else {
             events = repo.findAll(
+                    State.PUBLISHED,
                     text,
                     categories,
                     paid,
@@ -123,8 +125,8 @@ public class EventServiceImpl implements EventService {
                     .filter(e -> e.getConfirmedRequests() != e.getParticipantLimit())
                     .collect(toList());
         }
-        ewmClient.hit(APP, "/events", ip);
-        eventDtoResponses.forEach(e -> ewmClient.hit(APP, String.format("/events/%d", e.getId()), ip));
+        ewmClient.hit(app, "/events", ip);
+        eventDtoResponses.forEach(e -> ewmClient.hit(app, String.format("/events/%d", e.getId()), ip));
         return eventDtoResponses;
     }
 
@@ -177,7 +179,7 @@ public class EventServiceImpl implements EventService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        ewmClient.hit(APP, String.format("/events/%d", eventId), ip);
+        ewmClient.hit(app, String.format("/events/%d", eventId), ip);
         return eventDtoResponse;
     }
 
