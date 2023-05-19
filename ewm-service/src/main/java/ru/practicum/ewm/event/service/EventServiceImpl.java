@@ -374,11 +374,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private List<EventDtoResponse> setParticipationRequest(List<Event> events) {
-        final List<ParticipationRequest> requests = participationRequestRepo
-                .findAllByEventIn(events);
-        final Map<Event, List<ParticipationRequest>> byEvent = requests
-                .stream()
-                .collect(groupingBy(ParticipationRequest::getEvent, toList()));
-        return mapToEventDtoResponse(events, byEvent);
+        final List<CountRequestDto> countRequests = participationRequestRepo.findAllCountRequestByEvents(events);
+        return mapToEventDtoResponse(events, countRequests);
     }
 }

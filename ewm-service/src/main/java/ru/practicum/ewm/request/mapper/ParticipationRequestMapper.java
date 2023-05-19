@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class ParticipationRequestMapper {
-    public static ParticipationRequest mapToParticipationRequest(Event event, User requester, Status status, LocalDateTime created) {
+    public ParticipationRequest mapToParticipationRequest(Event event, User requester, Status status, LocalDateTime created) {
         ParticipationRequest participationRequest = new ParticipationRequest();
         participationRequest.setCreated(created);
         participationRequest.setEvent(event);
@@ -22,14 +22,14 @@ public class ParticipationRequestMapper {
         return participationRequest;
     }
 
-    public static List<ParticipationRequestDto> mapToParticipantRequestDto(List<ParticipationRequest> requests) {
+    public List<ParticipationRequestDto> mapToParticipantRequestDto(List<ParticipationRequest> requests) {
         return requests
                 .stream()
                 .map(ParticipationRequestMapper::mapToParticipantRequestDto)
                 .collect(Collectors.toList());
     }
 
-    public static ParticipationRequestDto mapToParticipantRequestDto(ParticipationRequest participationRequest) {
+    public ParticipationRequestDto mapToParticipantRequestDto(ParticipationRequest participationRequest) {
         return ParticipationRequestDto
                 .builder()
                 .created(participationRequest.getCreated())

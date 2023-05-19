@@ -2,39 +2,41 @@ package ru.practicum.ewm.event.mapper;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.event.dto.CountRequestDto;
 import ru.practicum.ewm.event.dto.EventDtoCreationRequest;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.event.model.State;
-import ru.practicum.ewm.request.model.ParticipationRequest;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
 import static ru.practicum.ewm.event.mapper.LocationMapper.mapToLocationDto;
 
 @UtilityClass
 public class EventMapper {
-    public static List<EventDtoResponse> mapToEventDtoResponse(List<Event> events,
-                                                               Map<Event, List<ParticipationRequest>> requests) {
+    public List<EventDtoResponse> mapToEventDtoResponse(List<Event> events, List<CountRequestDto> countRequests) {
+        final Map<Long, Long> countRequestByEventId = countRequests
+                .stream()
+                .collect(toMap(CountRequestDto::getEventId, CountRequestDto::getCountRequest));
         return events
                 .stream()
-                .map(e -> mapToEventDtoResponse(e, requests.getOrDefault(e, Collections.emptyList()).size()))
+                .map(e -> mapToEventDtoResponse(e, countRequestByEventId.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
-    public static EventDtoResponse mapToEventDtoResponse(Event event, long confirmedRequests) {
+    public EventDtoResponse mapToEventDtoResponse(Event event, long confirmedRequests) {
         EventDtoResponse eventDtoResponse = mapToEventDtoResponse(event);
         eventDtoResponse.setConfirmedRequests(confirmedRequests);
         return eventDtoResponse;
     }
 
-    public static EventDtoResponse mapToEventDtoResponse(Event event) {
+    public EventDtoResponse mapToEventDtoResponse(Event event) {
         EventDtoResponse eventDtoResponse = EventDtoResponse
                 .builder()
                 .annotation(event.getAnnotation())
@@ -58,10 +60,10 @@ public class EventMapper {
         return eventDtoResponse;
     }
 
-    public static Event mapToEvent(EventDtoCreationRequest eventDtoCreationRequest,
-                                   Category category,
-                                   User initiator,
-                                   Location location) {
+    public Event mapToEvent(EventDtoCreationRequest eventDtoCreationRequest,
+                            Category category,
+                            User initiator,
+                            Location location) {
         Event event = new Event();
         event.setAnnotation(eventDtoCreationRequest.getAnnotation());
         event.setCategory(category);

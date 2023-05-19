@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class CategoryMapper {
-    public static List<CategoryDtoResponse> mapToCategoryDtoResponse(List<Category> categories) {
+    public List<CategoryDtoResponse> mapToCategoryDtoResponse(List<Category> categories) {
         return categories.stream().map(CategoryMapper::mapToCategoryDtoResponse).collect(Collectors.toList());
     }
 
-    public static CategoryDtoResponse mapToCategoryDtoResponse(Category category) {
+    public CategoryDtoResponse mapToCategoryDtoResponse(Category category) {
         return CategoryDtoResponse
                 .builder()
                 .id(category.getId())

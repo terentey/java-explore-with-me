@@ -38,12 +38,19 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         final long requests = repo.countByEvent(event);
         if (event.getInitiator().getId() == userId ||
                 event.getState().equals(State.REJECTED) ||
-                event.getState().equals(State.PENDING) ||
-                requests >= event.getParticipantLimit()) {
+                event.getState().equals(State.PENDING)) {
             throw new DbConflictException();
-        } else if (event.isRequestModeration() && event.getParticipantLimit() != 0) {
-            return mapToParticipantRequestDto(
-                    repo.saveAndFlush(mapToParticipationRequest(event, requester, Status.PENDING, created)));
+        } else if (event.getParticipantLimit() != 0) {
+            if (requests >= event.getParticipantLimit()) {
+                throw new DbConflictException();
+            }
+            if (event.isRequestModeration()) {
+                return mapToParticipantRequestDto(
+                        repo.saveAndFlush(mapToParticipationRequest(event, requester, Status.PENDING, created)));
+            } else {
+                return mapToParticipantRequestDto(
+                        repo.saveAndFlush(mapToParticipationRequest(event, requester, Status.CONFIRMED, created)));
+            }
         } else {
             return mapToParticipantRequestDto(
                     repo.saveAndFlush(mapToParticipationRequest(event, requester, Status.CONFIRMED, created)));

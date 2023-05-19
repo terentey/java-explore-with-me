@@ -17,7 +17,6 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users/{userId}/events")
-@Validated
 public class PrivateEventController {
     private final EventService service;
 
