@@ -39,10 +39,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
 import static ru.practicum.ewm.event.dto.EventSort.*;
-import static ru.practicum.ewm.event.mapper.EventMapper.mapToEvent;
-import static ru.practicum.ewm.event.mapper.EventMapper.mapToEventDtoResponse;
-import static ru.practicum.ewm.event.mapper.LocationMapper.mapToLocation;
-import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.mapToParticipantRequestDto;
+import static ru.practicum.ewm.event.mapper.EventMapper.*;
+import static ru.practicum.ewm.event.mapper.LocationMapper.*;
+import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.*;
 
 @Transactional(readOnly = true)
 @Service

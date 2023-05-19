@@ -18,8 +18,7 @@ import ru.practicum.ewm.util.exception.IncorrectIdException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.mapToParticipantRequestDto;
-import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.mapToParticipationRequest;
+import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.*;
 
 @Transactional(readOnly = true)
 @Service

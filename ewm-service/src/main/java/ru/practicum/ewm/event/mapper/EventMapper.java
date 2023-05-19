@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
-import static ru.practicum.ewm.event.mapper.LocationMapper.mapToLocationDto;
+import static ru.practicum.ewm.event.mapper.LocationMapper.*;
 
 @UtilityClass
 public class EventMapper {

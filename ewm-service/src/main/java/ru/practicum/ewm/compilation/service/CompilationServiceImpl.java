@@ -21,9 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
-import static ru.practicum.ewm.compilation.mapper.CompilationMapper.mapToCompilation;
-import static ru.practicum.ewm.compilation.mapper.CompilationMapper.mapToCompilationDtoResponse;
-import static ru.practicum.ewm.event.mapper.EventMapper.mapToEventDtoResponse;
+import static ru.practicum.ewm.compilation.mapper.CompilationMapper.*;
+import static ru.practicum.ewm.event.mapper.EventMapper.*;
 
 @Transactional(readOnly = true)
 @Service

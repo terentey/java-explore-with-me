@@ -15,7 +15,7 @@ import ru.practicum.ewm.util.exception.dto.ExceptionDto;
 import javax.validation.ConstraintViolationException;
 
 import static org.springframework.http.HttpStatus.*;
-import static ru.practicum.ewm.util.exception.mapper.ExceptionMapper.mapToExceptionDto;
+import static ru.practicum.ewm.util.exception.mapper.ExceptionMapper.*;
 
 @RestControllerAdvice
 @Slf4j

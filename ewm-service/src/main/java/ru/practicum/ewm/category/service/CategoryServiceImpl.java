@@ -13,7 +13,7 @@ import ru.practicum.ewm.util.exception.IncorrectIdException;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
-import static ru.practicum.ewm.category.mapper.CategoryMapper.mapToCategoryDtoResponse;
+import static ru.practicum.ewm.category.mapper.CategoryMapper.*;
 
 @Transactional(readOnly = true)
 @Service

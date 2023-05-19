@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 
 @UtilityClass
 public class ExceptionMapper {
-    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public ExceptionDto mapToExceptionDto(HttpStatus status, String message) {
         return ExceptionDto
