@@ -14,11 +14,10 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
+    protected static ResponseEntity<String> prepareGatewayResponse(ResponseEntity<String> response) {
         if (response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
-
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
 
         if (response.hasBody()) {

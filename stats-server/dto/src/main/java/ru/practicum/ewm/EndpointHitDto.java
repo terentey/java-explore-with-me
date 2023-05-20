@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EndpointHitDto {
-    int id;
+    long id;
     String app;
     String uri;
     String ip;
