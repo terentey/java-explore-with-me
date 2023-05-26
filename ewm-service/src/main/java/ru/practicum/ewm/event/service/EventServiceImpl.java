@@ -19,6 +19,9 @@ import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.event.model.State;
+import ru.practicum.ewm.rating.dao.RatingRepository;
+import ru.practicum.ewm.rating.dto.CountRatingDto;
+import ru.practicum.ewm.rating.model.Rating;
 import ru.practicum.ewm.request.dao.ParticipationRequestRepository;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
@@ -28,9 +31,9 @@ import ru.practicum.ewm.user.dao.UserRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.util.exception.DbConflictException;
 import ru.practicum.ewm.util.exception.IncorrectIdException;
+import ru.practicum.ewm.util.exception.IncorrectSortException;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +41,8 @@ import java.util.Optional;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
-import static ru.practicum.ewm.event.dto.EventSort.*;
+import static ru.practicum.ewm.event.dto.EventSort.EVENT_DATE;
+import static ru.practicum.ewm.event.dto.EventSort.getSort;
 import static ru.practicum.ewm.event.mapper.EventMapper.*;
 import static ru.practicum.ewm.event.mapper.LocationMapper.*;
 import static ru.practicum.ewm.request.mapper.ParticipationRequestMapper.*;
@@ -60,6 +64,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepo;
     private final LocationRepository locationRepo;
     private final ParticipationRequestRepository participationRequestRepo;
+    private final RatingRepository ratingRepo;
     @Value("${ewm-app.name}")
     private String app;
 
@@ -110,13 +115,31 @@ public class EventServiceImpl implements EventService {
                     PageRequest.of(from / size, size));
         }
         List<EventDtoResponse> eventDtoResponses;
-        if (sortFromString.equals(VIEWS)) {
-            eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events)
-                    .stream()
-                    .sorted(comparing(EventDtoResponse::getViews))
-                    .collect(toList());
-        } else {
-            eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events);
+        switch (sortFromString) {
+            case VIEWS:
+                eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events)
+                        .stream()
+                        .sorted(comparing(EventDtoResponse::getViews))
+                        .collect(toList());
+                break;
+            case LIKE:
+                eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events)
+                        .stream()
+                        .sorted(comparing(EventDtoResponse::getCountLike).reversed())
+                        .collect(toList());
+                break;
+            case DISLIKE:
+                eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events)
+                        .stream()
+                        .sorted(comparing(EventDtoResponse::getCountDislike).reversed())
+                        .collect(toList());
+                break;
+            case NOT_SORT:
+            case EVENT_DATE:
+                eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events);
+                break;
+            default:
+                throw new IncorrectSortException();
         }
         if (onlyAvailable) {
             eventDtoResponses = eventDtoResponses
@@ -153,7 +176,7 @@ public class EventServiceImpl implements EventService {
     public List<EventDtoResponse> findAll(long userId, int from, int size) {
         final User initiator = findInitiator(userId);
         final List<Event> events = repo.findAllByInitiator(initiator, PageRequest.of(from / size, size));
-        return setParticipationRequest(events);
+        return setParticipationRequestAndRating(events);
     }
 
     @Transactional(readOnly = true)
@@ -163,7 +186,9 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new IncorrectIdException(eventId, "event"));
         final List<ParticipationRequest> requests = participationRequestRepo
                 .findAllByEventAndStatus(event, Status.CONFIRMED);
-        final EventDtoResponse eventDtoResponse = mapToEventDtoResponse(event, requests.size());
+        final long countLike = ratingRepo.countByEventAndRating(event, Rating.LIKE);
+        final long countDislike = ratingRepo.countByEventAndRating(event, Rating.DISLIKE);
+        final EventDtoResponse eventDtoResponse = mapToEventDtoResponse(event, requests.size(), countLike, countDislike);
         try {
             List<ViewStatsDto> views = objectMapper.readValue(ewmClient.stats(event.getPublishedOn(),
                     LocalDateTime.now(),
@@ -187,7 +212,9 @@ public class EventServiceImpl implements EventService {
     public EventDtoResponse findById(long userId, long eventId) {
         final Event event = findEventByInitiatorIdAndEventId(userId, eventId);
         final List<ParticipationRequest> requests = participationRequestRepo.findAllByEvent(event);
-        return mapToEventDtoResponse(event, requests.size());
+        final long countLike = ratingRepo.countByEventAndRating(event, Rating.LIKE);
+        final long countDislike = ratingRepo.countByEventAndRating(event, Rating.DISLIKE);
+        return mapToEventDtoResponse(event, requests.size(), countLike, countDislike);
     }
 
     @Transactional(readOnly = true)
@@ -350,10 +377,17 @@ public class EventServiceImpl implements EventService {
                                                                    LocalDateTime rangeEnd,
                                                                    List<Event> events) {
         final List<String> uris = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(toList());
-        final List<EventDtoResponse> eventDtoResponses = setParticipationRequest(events);
+        final List<EventDtoResponse> eventDtoResponses = setParticipationRequestAndRating(events);
         if (rangeStart == null) {
-            events.sort(Comparator.comparing(Event::getPublishedOn));
-            rangeStart = events.get(0).getPublishedOn();
+            Optional<Event> firstPublished = events
+                    .stream()
+                    .filter(e -> e.getState().equals(State.PUBLISHED)).min(comparing(Event::getPublishedOn));
+            if (firstPublished.isPresent()) {
+                rangeStart = firstPublished.get().getPublishedOn();
+            } else {
+                eventDtoResponses.forEach(e -> e.setViews(0L));
+                return eventDtoResponses;
+            }
         }
         if (rangeEnd == null) {
             rangeEnd = LocalDateTime.now();
@@ -372,8 +406,10 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private List<EventDtoResponse> setParticipationRequest(List<Event> events) {
+    private List<EventDtoResponse> setParticipationRequestAndRating(List<Event> events) {
         final List<CountRequestDto> countRequests = participationRequestRepo.findAllCountRequestByEvents(events);
-        return mapToEventDtoResponse(events, countRequests);
+        final List<CountRatingDto> countLike = ratingRepo.findAllCountRatingByEventsAndRating(events, Rating.LIKE);
+        final List<CountRatingDto> countDislike = ratingRepo.findAllCountRatingByEventsAndRating(events, Rating.DISLIKE);
+        return mapToEventDtoResponse(events, countRequests, countLike, countDislike);
     }
 }

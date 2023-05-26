@@ -8,6 +8,7 @@ import ru.practicum.ewm.event.dto.EventDtoResponse;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.event.model.State;
+import ru.practicum.ewm.rating.dto.CountRatingDto;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,28 @@ import static ru.practicum.ewm.event.mapper.LocationMapper.*;
 
 @UtilityClass
 public class EventMapper {
+    public List<EventDtoResponse> mapToEventDtoResponse(List<Event> events,
+                                                        List<CountRequestDto> countRequests,
+                                                        List<CountRatingDto> countLike,
+                                                        List<CountRatingDto> countDislike) {
+        final Map<Long, Long> countRequestByEventId = countRequests
+                .stream()
+                .collect(toMap(CountRequestDto::getEventId, CountRequestDto::getCountRequest));
+        final Map<Long, Long> countLikeByEventId = countLike
+                .stream()
+                .collect(toMap(CountRatingDto::getEventId, CountRatingDto::getCountRating));
+        final Map<Long, Long> countDislikeByEventId = countDislike
+                .stream()
+                .collect(toMap(CountRatingDto::getEventId, CountRatingDto::getCountRating));
+        return events
+                .stream()
+                .map(e -> mapToEventDtoResponse(e,
+                        countRequestByEventId.getOrDefault(e.getId(), 0L),
+                        countLikeByEventId.getOrDefault(e.getId(), 0L),
+                        countDislikeByEventId.getOrDefault(e.getId(), 0L)))
+                .collect(Collectors.toList());
+    }
+
     public List<EventDtoResponse> mapToEventDtoResponse(List<Event> events, List<CountRequestDto> countRequests) {
         final Map<Long, Long> countRequestByEventId = countRequests
                 .stream()
@@ -28,6 +51,16 @@ public class EventMapper {
                 .stream()
                 .map(e -> mapToEventDtoResponse(e, countRequestByEventId.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
+    }
+
+    public EventDtoResponse mapToEventDtoResponse(Event event,
+                                                  long confirmedRequests,
+                                                  long countLike,
+                                                  long countDislike) {
+        EventDtoResponse eventDtoResponse = mapToEventDtoResponse(event, confirmedRequests);
+        eventDtoResponse.setCountLike(countLike);
+        eventDtoResponse.setCountDislike(countDislike);
+        return eventDtoResponse;
     }
 
     public EventDtoResponse mapToEventDtoResponse(Event event, long confirmedRequests) {
