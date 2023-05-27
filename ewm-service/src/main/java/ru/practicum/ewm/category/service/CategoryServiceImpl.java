@@ -11,6 +11,7 @@ import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.util.exception.IncorrectIdException;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 import static ru.practicum.ewm.category.mapper.CategoryMapper.*;
@@ -24,7 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public CategoryDtoResponse save(@NotBlank String name) {
+    public CategoryDtoResponse save(@NotBlank @Size(max = 50) String name) {
         Category category = new Category();
         category.setName(name);
         return mapToCategoryDtoResponse(repo.saveAndFlush(category));
@@ -43,7 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public CategoryDtoResponse update(@NotBlank String name, long catId) {
+    public CategoryDtoResponse update(@NotBlank @Size(max = 50) String name, long catId) {
         final Category category = repo.findById(catId).orElseThrow(() -> new IncorrectIdException(catId, "category"));
         category.setName(name);
         return mapToCategoryDtoResponse(category);

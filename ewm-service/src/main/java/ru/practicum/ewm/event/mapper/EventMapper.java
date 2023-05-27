@@ -107,7 +107,11 @@ public class EventMapper {
         event.setLocation(location);
         event.setPaid(eventDtoCreationRequest.isPaid());
         event.setParticipantLimit(eventDtoCreationRequest.getParticipantLimit());
-        event.setRequestModeration(eventDtoCreationRequest.isRequestModeration());
+        if (eventDtoCreationRequest.getRequestModeration() == null) {
+            event.setRequestModeration(true);
+        } else {
+            event.setRequestModeration(eventDtoCreationRequest.getRequestModeration());
+        }
         event.setState(State.PENDING);
         event.setTitle(eventDtoCreationRequest.getTitle());
         return event;

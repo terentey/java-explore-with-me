@@ -34,6 +34,7 @@ import ru.practicum.ewm.util.exception.IncorrectIdException;
 import ru.practicum.ewm.util.exception.IncorrectSortException;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -168,7 +169,10 @@ public class EventServiceImpl implements EventService {
                 rangeStart,
                 rangeEnd,
                 PageRequest.of(from / size, size));
-        return setParticipationRequestAndViews(rangeStart, rangeEnd, events);
+        return setParticipationRequestAndViews(rangeStart, rangeEnd, events)
+                .stream()
+                .sorted(Comparator.comparing(EventDtoResponse::getId))
+                .collect(toList());
     }
 
     @Transactional(readOnly = true)
