@@ -135,6 +135,12 @@ public class EventServiceImpl implements EventService {
                         .sorted(comparing(EventDtoResponse::getCountDislike).reversed())
                         .collect(toList());
                 break;
+            case RATING:
+                eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events)
+                        .stream()
+                        .sorted(Comparator.comparing(e -> e.getCountLike() - e.getCountDislike()))
+                        .collect(toList());
+                break;
             case NOT_SORT:
             case EVENT_DATE:
                 eventDtoResponses = setParticipationRequestAndViews(rangeStart, rangeEnd, events);
