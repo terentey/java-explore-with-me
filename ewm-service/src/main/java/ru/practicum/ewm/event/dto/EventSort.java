@@ -3,7 +3,7 @@ package ru.practicum.ewm.event.dto;
 import ru.practicum.ewm.util.exception.IncorrectSortException;
 
 public enum EventSort {
-    EVENT_DATE, VIEWS, NOT_SORT;
+    EVENT_DATE, VIEWS, NOT_SORT, LIKE, DISLIKE, RATING;
 
     public static EventSort getSort(String sort) {
         if (sort == null) {

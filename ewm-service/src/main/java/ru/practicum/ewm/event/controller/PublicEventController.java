@@ -5,6 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventDtoResponse;
 import ru.practicum.ewm.event.service.EventService;
+import ru.practicum.ewm.util.exception.EndBeforeStartException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -29,6 +30,9 @@ public class PublicEventController {
                                           @RequestParam(defaultValue = "0") int from,
                                           @RequestParam(defaultValue = "10") int size,
                                           HttpServletRequest httpServletRequest) {
+        if (rangeStart != null && rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
+            throw new EndBeforeStartException(rangeStart, rangeEnd);
+        }
         return service.findAll(
                 text,
                 categories,

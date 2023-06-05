@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import ru.practicum.ewm.util.annotation.CorrectEventDate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -14,15 +15,16 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EventDtoCreationRequest {
     @NotBlank
-    @Size(max = 2000)
+    @Size(max = 2000, min = 20)
     String annotation;
     @NotNull
     @Positive
     Long category;
     @NotBlank
-    @Size(max = 7000)
+    @Size(max = 7000, min = 20)
     String description;
     @NotNull
+    @CorrectEventDate
     LocalDateTime eventDate;
     @NotNull
     @Valid
@@ -30,7 +32,7 @@ public class EventDtoCreationRequest {
     boolean paid;
     @PositiveOrZero
     int participantLimit;
-    boolean requestModeration;
+    Boolean requestModeration;
     @NotBlank
     @Size(min = 3, max = 120)
     String title;

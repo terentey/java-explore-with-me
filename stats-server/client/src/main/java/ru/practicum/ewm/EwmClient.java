@@ -11,6 +11,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,35 @@ public class EwmClient extends BaseClient {
         HttpEntity<EndpointHitDto> request = new HttpEntity<>(dto, defaultHeaders());
 
         prepareGatewayResponse(rest.exchange("/hit", HttpMethod.POST, request, String.class));
+    }
+
+    public ResponseEntity<String> rating(LocalDateTime start, LocalDateTime end, List<String> uris, String uriBegins) {
+        HttpEntity<List<ViewStatsDto>> request = new HttpEntity<>(null, defaultHeaders());
+        Map<String, Object> parameters = new HashMap<>();
+        String url = "/rating?%s";
+        if (start != null) {
+            parameters.put("start", start.format(FORMATTER));
+            url = String.format(url, "start={start}&%s");
+        }
+        if (end != null) {
+            parameters.put("end", end.format(FORMATTER));
+            url = String.format(url, "end={end}&%s");
+        }
+        if (uris != null) {
+            parameters.put("uris", String.join(",", uris));
+            url = String.format(url, "uris={uris}");
+        }
+        if (uriBegins != null) {
+            parameters.put("uriBegins", uriBegins);
+            url = String.format(url, "uriBegins={uriBegins}");
+        }
+
+        return prepareGatewayResponse(rest.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                String.class,
+                parameters));
     }
 
     public ResponseEntity<String> stats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {

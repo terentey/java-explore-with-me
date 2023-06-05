@@ -9,6 +9,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.util.exception.DbConflictException;
+import ru.practicum.ewm.util.exception.EndBeforeStartException;
 import ru.practicum.ewm.util.exception.IncorrectIdException;
 import ru.practicum.ewm.util.exception.dto.ExceptionDto;
 
@@ -21,7 +22,13 @@ import static ru.practicum.ewm.util.exception.mapper.ExceptionMapper.*;
 @Slf4j
 public class ErrorHandler {
     @ExceptionHandler
-    public ResponseEntity<ExceptionDto> handleArgumentValid(MissingServletRequestParameterException e) {
+    public ResponseEntity<ExceptionDto> handleEndAfterStartException(EndBeforeStartException e) {
+        log.error("Невалидное значение, переданное в контролер {}", e.getMessage());
+        return new ResponseEntity<>(mapToExceptionDto(BAD_REQUEST, e.getMessage()), BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ExceptionDto> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         log.error("Отсутствует параметр запроса: {}", e.getMessage());
         return new ResponseEntity<>(mapToExceptionDto(BAD_REQUEST, e.getMessage()), BAD_REQUEST);
     }
@@ -51,13 +58,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ExceptionDto> handleArgumentValid(InvalidFormatException e) {
+    public ResponseEntity<ExceptionDto> handleInvalidFormatException(InvalidFormatException e) {
         log.error("Невалидное значение, переданное в контролер {}", e.getMessage());
         return new ResponseEntity<>(mapToExceptionDto(BAD_REQUEST, e.getMessage()), BAD_REQUEST);
     }
 
     @ExceptionHandler
-    public ResponseEntity<ExceptionDto> handleArgumentValid(ConstraintViolationException e) {
+    public ResponseEntity<ExceptionDto> handleConstraintViolationException(ConstraintViolationException e) {
         log.error("Невалидное значение, переданное в контролер {}", e.getMessage());
         return new ResponseEntity<>(mapToExceptionDto(BAD_REQUEST, e.getMessage()), BAD_REQUEST);
     }

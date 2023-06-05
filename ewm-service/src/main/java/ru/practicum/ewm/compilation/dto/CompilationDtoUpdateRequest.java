@@ -14,6 +14,6 @@ import java.util.List;
 public class CompilationDtoUpdateRequest {
     List<Long> events;
     Boolean pinned;
-    @Size(min = 3, max = 120)
+    @Size(min = 3, max = 50)
     String title;
 }

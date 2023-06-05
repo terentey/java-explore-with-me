@@ -31,6 +31,8 @@ public class EventDtoResponse {
     State state;
     String title;
     long views;
+    long countLike;
+    long countDislike;
 
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)

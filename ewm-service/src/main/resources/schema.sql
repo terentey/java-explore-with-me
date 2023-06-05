@@ -62,3 +62,11 @@ CREATE TABLE IF NOT EXISTS compilation_event
     event_id       BIGINT REFERENCES event (id),
     CONSTRAINT pk_compilation_event PRIMARY KEY (compilation_id, event_id)
 );
+
+CREATE TABLE IF NOT EXISTS rating_event
+(
+    user_id        BIGINT REFERENCES users (id),
+    event_id       BIGINT REFERENCES event (id),
+    rating         VARCHAR NOT NULL,
+    CONSTRAINT pk_rating_event PRIMARY KEY (user_id, event_id)
+);
